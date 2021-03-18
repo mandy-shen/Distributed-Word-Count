@@ -1,0 +1,41 @@
+version: "3"
+
+networks:
+  test:
+
+volumes:
+  tmp:
+
+services:
+  app1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "18080:8080"
+    networks:
+      - test
+    volumes:
+      - tmp:/tmp
+  app2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "18081:8080"
+    networks:
+      - test
+    volumes:
+      - tmp:/tmp
+  app3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "18082:8080"
+    networks:
+      - test
+    volumes:
+      - tmp:/tmp
+
+
