@@ -8,16 +8,9 @@ volumes:
 
 services:
   app1:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "18080:8080"
-    networks:
-      - test
-    volumes:
-      - tmp:/tmp
-  app2:
+    container_name: app1
+    environment:
+      - id=1
     build:
       context: .
       dockerfile: Dockerfile
@@ -26,16 +19,4 @@ services:
     networks:
       - test
     volumes:
-      - tmp:/tmp
-  app3:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "18082:8080"
-    networks:
-      - test
-    volumes:
-      - tmp:/tmp
-
-
+      - tmp:/volume
