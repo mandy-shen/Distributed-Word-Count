@@ -15,13 +15,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/countwords")
+@RequestMapping(value="/countwords")
 public class WordCountController {
 
     @Value("${volume.path}")
     public String volpath;
 
-    @GetMapping(value="/gate")
+    //@GetMapping(value="/gate")
     public String gate(@RequestParam String file) {
 
         String list = "Word(s) Found Most: \nWord(s) Found Least: ";
@@ -34,13 +34,13 @@ public class WordCountController {
             RestTemplate restTemplate = new RestTemplate();
             switch (id) {
                 case 1:
-                    list = restTemplate.getForObject("http://localhost:18081/countwords", String.class);
+                    list = restTemplate.getForObject("http://localhost:18081/countwords?file="+file, String.class);
                     break;
                 case 2:
-                    list = restTemplate.getForObject("http://localhost:18082/countwords", String.class);
+                    list = restTemplate.getForObject("http://localhost:18082/countwords?file="+file, String.class);
                     break;
                 case 3:
-                    list = restTemplate.getForObject("http://localhost:18083/countwords", String.class);
+                    list = restTemplate.getForObject("http://localhost:18083/countwords?file="+file, String.class);
                     break;
                 default:
                     list = getFrequencyResult(file);
