@@ -57,6 +57,7 @@ public class WordCountController {
         // URL: http://localhost:18080/countwords?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
         // System.out.printf("file=%S\n", file);
         // String file = "https://www.gutenberg.org/cache/epub/19033/pg19033.txt";
+        file = Paths.get("./pg19033.txt").toUri().toString();
         return getFrequencyResult(file);
     }
 

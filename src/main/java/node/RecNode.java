@@ -49,6 +49,8 @@ public class RecNode extends Thread {
                 String msg = new String(recPkt.getData(), 0, recPkt.getLength());
                 System.out.printf("**** r%s_REC=%s\n",id, msg);
                 isLoop = "alive".equals(msg);
+                if (!isLoop)
+                    System.out.printf("**** r%s_REC=%s\n",id, msg);
             }
         } catch (SocketTimeoutException e) {
             int sleep = Math.abs(random.nextInt(300));

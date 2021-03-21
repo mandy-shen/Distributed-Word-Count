@@ -56,7 +56,7 @@ public class LeaderNode {
             byte[] buffer = msg.getBytes();
             InetAddress addr = InetAddress.getByName("255.255.255.255");
 
-            System.out.println("sent="+msg);
+            //System.out.println("sent="+msg);
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, addr, 4445);
             socket.send(packet);
         } catch (IOException e) {
