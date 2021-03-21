@@ -30,13 +30,12 @@ public class WordcountApplication {
                 Files.createDirectories(dirPath);
             Files.write(Paths.get("/volume/hosts"), ip.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 
+            int id = 0;
             Path idpath = Paths.get("/volume/id");
-            if (Files.exists(idpath)) {
-                Integer id = Integer.valueOf(Files.readAllLines(idpath).get(0));
-                Files.write(idpath, String.valueOf(id++).getBytes());
-            } else {
-                Files.write(idpath, String.valueOf(1).getBytes());
-            }
+            if (Files.exists(idpath))
+                id = Integer.valueOf(Files.readAllLines(idpath).get(0)) + 1;
+            Files.write(idpath, String.valueOf(id).getBytes()); // overwrite file
+
         } catch (IOException e) {
             e.printStackTrace();
         }
