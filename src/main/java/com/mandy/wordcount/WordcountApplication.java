@@ -29,6 +29,14 @@ public class WordcountApplication {
             if (!Files.exists(dirPath))
                 Files.createDirectories(dirPath);
             Files.write(Paths.get("/volume/hosts"), ip.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+
+            Path idpath = Paths.get("/volume/id");
+            if (Files.exists(idpath)) {
+                Integer id = Integer.valueOf(Files.readAllLines(idpath).get(0));
+                Files.write(idpath, String.valueOf(id++).getBytes());
+            } else {
+                Files.write(idpath, String.valueOf(1).getBytes());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
