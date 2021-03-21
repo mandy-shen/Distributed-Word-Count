@@ -5,17 +5,23 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
+import java.nio.file.Path;
+import java.util.Random;
 
 public class RecNode extends Thread {
 
     int id;
+    Path dirPath;
     String ip;
-    public DatagramSocket socket;
+    DatagramSocket socket;
     boolean isLoop;
+    Random random;
 
-    public RecNode(int id) {
+    public RecNode(Path dirPath, int id) {
         this.id = id;
+        this.dirPath = dirPath;
         this.isLoop = true;
+        this.random = new Random();
         try {
             this.ip = InetAddress.getLocalHost().getHostAddress();
             this.socket = new DatagramSocket(4445);
@@ -45,24 +51,20 @@ public class RecNode extends Thread {
                 isLoop = "alive".equals(msg);
             }
         } catch (SocketTimeoutException e) {
-            System.out.printf("**** r%s_Timeout\n",id);
-            new CandiNode(id, ip);
+            int sleep = Math.abs(random.nextInt(300));
+            System.out.printf("**** r%s_Timeout\n **** sleep=", id, sleep);
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException interruptedException) {
+                interruptedException.printStackTrace();
+            }
+            new LeaderNode(dirPath, id); // change to leader
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             if (socket!=null)
                 socket.close();
             System.out.printf("**** r%s_CLOSED\n",id);
-        }
-    }
-
-    class CandiNode {
-        int id;
-        String ip;
-        public CandiNode(int id, String ip) {
-            this.id = id;
-            this.ip = ip;
-            System.out.printf("%s(%s)=candi\n", id, ip);
         }
     }
 }

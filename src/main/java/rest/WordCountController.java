@@ -1,11 +1,16 @@
 package rest;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -13,15 +18,49 @@ import java.util.stream.Collectors;
 @RequestMapping("/countwords")
 public class WordCountController {
 
+    @Value("${volume.path}")
+    public String volpath;
+
+    @GetMapping(value="/gate")
+    public String gate(@RequestParam String file) {
+
+        String list = "Word(s) Found Most: \nWord(s) Found Least: ";
+
+        try {
+            Path leaderpath = Paths.get(volpath + "/leader");
+            int id = Integer.valueOf(Files.readAllLines(leaderpath).get(0));
+            System.out.printf("gate_leader=%s\n", id);
+
+            RestTemplate restTemplate = new RestTemplate();
+            switch (id) {
+                case 1:
+                    list = restTemplate.getForObject("http://localhost:18081/countwords", String.class);
+                    break;
+                case 2:
+                    list = restTemplate.getForObject("http://localhost:18082/countwords", String.class);
+                    break;
+                case 3:
+                    list = restTemplate.getForObject("http://localhost:18083/countwords", String.class);
+                    break;
+                default:
+                    list = getFrequencyResult(file);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     @GetMapping
-    public Iterable countwords(@RequestParam String file) {
+    public String countwords(@RequestParam String file) {
         // URL: http://localhost:18080/countwords?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
         // System.out.printf("file=%S\n", file);
         // String file = "https://www.gutenberg.org/cache/epub/19033/pg19033.txt";
         return getFrequencyResult(file);
     }
 
-    private List<String> getFrequencyResult(String path) {
+    private String getFrequencyResult(String path) {
         // map
         Map<String, Integer> map = getWordMap(path);
         // System.out.println("map size:"+ map.size());
@@ -55,8 +94,7 @@ public class WordCountController {
                 .collect(Collectors.joining(", "));
          */
 
-        return List.of( "Word(s) Found Most: " + mostWords,
-                "Word(s) Found Least: " + leastWords);
+        return "Word(s) Found Most: " + mostWords + "\nWord(s) Found Least: " + leastWords;
     }
 
     private Map<String, Integer> getWordMap(String path) {

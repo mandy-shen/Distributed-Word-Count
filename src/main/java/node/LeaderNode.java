@@ -1,33 +1,42 @@
 package node;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class LeaderNode {
 
     int id;
+    Path dirPath;
     String ip;
-    public DatagramSocket socket;
-    public Timer timer;
+    DatagramSocket socket;
+    Timer timer;
 
-    public LeaderNode(int id) {
+    public LeaderNode(Path dirPath, int id) {
         this.id = id;
-        try {
-            this.ip = InetAddress.getLocalHost().getHostAddress();
-            this.socket = new DatagramSocket();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.dirPath = dirPath;
         init();
         initTimer();
     }
 
     private void init() {
         System.out.printf("%s=leader\n", id);
+        try {
+            this.ip = InetAddress.getLocalHost().getHostAddress();
+            this.socket = new DatagramSocket();
+            // test
+            Files.write(Paths.get(dirPath + "/leader"), String.valueOf(id).getBytes()); // overwrite file
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void initTimer() {
