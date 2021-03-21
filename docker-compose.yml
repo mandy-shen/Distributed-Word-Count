@@ -20,3 +20,16 @@ services:
       - test
     volumes:
       - tmp:/volume
+  app2:
+    container_name: app2
+    environment:
+      - id=2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "18082:8080"
+    networks:
+      - test
+    volumes:
+      - tmp:/volume
