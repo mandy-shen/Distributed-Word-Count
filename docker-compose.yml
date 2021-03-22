@@ -8,21 +8,21 @@ volumes:
 
 services:
   gate:
-    environment:
-      - id=0
+    hostname: gate
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on:
+      - app1
     ports:
       - "8080:8080"
     networks:
       - backend
   app1:
+    hostname: app1
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      - gate
     ports:
       - "18081:8080"
     networks:

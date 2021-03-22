@@ -21,27 +21,15 @@ public class WordcountApplication {
 
     public static void run() {
         try {
+            Node node = new Node();
+
             // create volume path
             Path dirPath = Paths.get("/volume");
             if (!Files.exists(dirPath))
                 Files.createDirectories(dirPath);
 
-            // log id
-            String id = System.getenv("id");
-            System.out.println("id_test=" + id);
-
-            // for test socket
-            if ("0".equals(id)) {
-                InetAddress localhost = InetAddress.getLocalHost();
-                String ip = String.format("%s", localhost.getHostAddress());
-                Files.write(Paths.get(dirPath + "/gate"), ip.getBytes());
-            } else {
-                new Node(dirPath);
-            }
-
             // log hosts
-            InetAddress localhost = InetAddress.getLocalHost();
-            String ip = String.format("%s,%s,%s\n", id, localhost.getHostAddress(), localhost.getHostName());
+            String ip = String.format("%s,%s\n", node.hostname, node.ip);
             Files.write(Paths.get(dirPath + "/hosts"), ip.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             System.out.println(ip);
         } catch (IOException e) {

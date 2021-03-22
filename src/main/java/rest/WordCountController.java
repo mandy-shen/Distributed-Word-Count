@@ -21,7 +21,7 @@ public class WordCountController {
     @Value("${volume.path}")
     public String volpath;
 
-    public String ip;
+    public String hostname;
 
     @GetMapping(value="/gate")
     public String gate(@RequestParam String file) {
@@ -29,14 +29,14 @@ public class WordCountController {
         String list = "Word(s) Found Most: \nWord(s) Found Least: ";
 
         RestTemplate restTemplate = new RestTemplate();
-        list = restTemplate.getForObject("http://" + ip + ":8080/countwords?file=" + file, String.class);
+        list = restTemplate.getForObject("http://" + hostname + ":8080/countwords?file=" + file, String.class);
 
         return list;
     }
 
     @GetMapping(value="chgleader")
-    public void chgleader(@RequestParam String ip) {
-        this.ip = ip;
+    public void chgleader(@RequestParam String hostname) {
+        this.hostname = hostname;
     }
 
     @GetMapping(value="/countwords")

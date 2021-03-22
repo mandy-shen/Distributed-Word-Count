@@ -16,22 +16,23 @@ import java.util.TimerTask;
 
 public class Node {
 
-    Path dirPath;
-    String ip;
+    public String hostname;
+    public String ip;
     DatagramSocket socket;
     Random random;
 
     Receiver rec;
     Leader leader;
 
-    public Node(Path dirPath) {
-        this.dirPath = dirPath;
+    public Node() {
         this.random = new Random();
         try {
+            this.hostname = InetAddress.getLocalHost().getHostName();
             this.ip = InetAddress.getLocalHost().getHostAddress();
             this.socket = new DatagramSocket(4445);
             socket.setSoTimeout(3000);
-            rec = new Receiver();
+            if (!"gate".equals(hostname))
+                rec = new Receiver();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -83,7 +84,7 @@ public class Node {
 
         public Leader() {
             RestTemplate restTemplate = new RestTemplate();
-            restTemplate.getForObject("http://172.24.0.2:8080/chgleader?ip=" + ip, String.class);
+            restTemplate.getForObject("http://gate:8080/chgleader?hostname=" + hostname, String.class);
             System.out.printf("%s=leader\n", ip);
             initTimer();
         }
