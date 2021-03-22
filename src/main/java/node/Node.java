@@ -67,7 +67,7 @@ public class Node {
                 byte[] rec = new byte[8];
                 DatagramPacket recPkt = new DatagramPacket(rec, rec.length);
 
-                while(true) {
+                while (true) {
                     heartbeat.receive(recPkt);
                     String msg = new String(recPkt.getData(), 0, recPkt.getLength());
                     System.out.printf("**** r%s_REC=%s\n", hostname, msg);
@@ -77,17 +77,18 @@ public class Node {
                         timer.cancel();
                         initTimer();
                         if (lead != null)
-                        lead.timer.cancel();
+                            lead.timer.cancel();
                     }
                 }
+            } catch (SocketTimeoutException e) {
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
         private void waitTobeLeader() {
-                // change to leader
-                lead = new Leader();
+            // change to leader
+            lead = new Leader();
         }
     }
 
@@ -95,17 +96,17 @@ public class Node {
         public Timer timer;
 
         public Leader() {
-            RestTemplate restTemplate = new RestTemplate();
-            restTemplate.getForObject("http://gate/param?hostname=" + hostname, String.class);
             System.out.printf("%s=candidate\n", hostname);
             initTimer();
         }
 
         private void initTimer() {
             this.timer = new Timer();
+            RestTemplate restTemplate = new RestTemplate();
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
+                    restTemplate.getForObject("http://gate:8080/param?hostname=" + hostname, String.class);
                     System.out.printf("%s=leader\n", hostname);
                     broadcast("lv-"+hostname);
                 }
@@ -121,7 +122,7 @@ public class Node {
             byte[] buffer = msg.getBytes();
             InetAddress addr = InetAddress.getByName("255.255.255.255");
 
-            System.out.println("sent="+msg);
+            //System.out.println("sent="+msg);
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, addr, 4445);
             heartbeat.send(packet);
         } catch (IOException e) {

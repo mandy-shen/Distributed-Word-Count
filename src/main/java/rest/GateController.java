@@ -31,10 +31,10 @@ public class GateController {
     @GetMapping(value="/gate")
     public String gate(@RequestParam String file) {
         // URL: http://localhost/gate?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
-        String list = "Word(s) Found Most: \nWord(s) Found Least: ";
+        String list = "";
 
         RestTemplate restTemplate = new RestTemplate();
-        list = restTemplate.getForObject("http://" + hostname + "/count?file=" + file, String.class);
+        list = restTemplate.getForObject("http://" + hostname + ":8080/count?file=" + file, String.class);
 
         return list;
     }
