@@ -1,6 +1,5 @@
 package rest;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,30 +12,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping
+@RequestMapping(value="/count")
 public class WordCountController {
 
-    public String hostname;
-
-    @GetMapping(value="/gate")
-    public String gate(@RequestParam String file) {
-        // URL: http://localhost:8080/gate?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
-        String list = "Word(s) Found Most: \nWord(s) Found Least: ";
-
-        RestTemplate restTemplate = new RestTemplate();
-        list = restTemplate.getForObject("http://" + hostname + ":8080/countwords?file=" + file, String.class);
-
-        return list;
-    }
-
-    @GetMapping(value="chgleader")
-    public void chgleader(@RequestParam String hostname) {
-        this.hostname = hostname;
-    }
-
-    @GetMapping(value="/countwords")
+    @GetMapping
     public String countwords(@RequestParam String file) {
-        // URL: http://localhost:18080/countwords?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
+        // URL: http://localhost:8080/count?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
         // System.out.printf("file=%s\n", file);
         // String file = "https://www.gutenberg.org/cache/epub/19033/pg19033.txt";
         file = Paths.get("/project/pg19033.txt").toUri().toString();

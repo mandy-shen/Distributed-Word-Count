@@ -15,7 +15,7 @@ services:
     depends_on:
       - app1
     ports:
-      - "8080:8080"
+      - "80:8080"
     networks:
       - backend
   app1:
