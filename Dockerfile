@@ -2,8 +2,6 @@ FROM openjdk:11
 
 MAINTAINER mandy
 
-COPY ./pg19033.txt /volume/pg19033.txt
-
 RUN apt-get update && apt-get install -y maven
 COPY . /project
 RUN  cd /project && mvn clean package

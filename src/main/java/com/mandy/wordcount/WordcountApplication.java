@@ -5,7 +5,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,9 +19,12 @@ public class WordcountApplication {
     }
 
     public static void run() {
-        try {
-            Node node = new Node();
+        Node node = new Node();
+        storeHosts(node);
+    }
 
+    private static void storeHosts(Node node) {
+        try {
             // create volume path
             Path dirPath = Paths.get("/volume");
             if (!Files.exists(dirPath))

@@ -8,8 +8,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,9 +15,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping
 public class WordCountController {
-
-    @Value("${volume.path}")
-    public String volpath;
 
     public String hostname;
 
@@ -44,7 +39,7 @@ public class WordCountController {
         // URL: http://localhost:18080/countwords?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
         // System.out.printf("file=%s\n", file);
         // String file = "https://www.gutenberg.org/cache/epub/19033/pg19033.txt";
-        file = Paths.get(volpath + "/pg19033.txt").toUri().toString();
+        file = Paths.get("/project/pg19033.txt").toUri().toString();
         return getFrequencyResult(file);
     }
 

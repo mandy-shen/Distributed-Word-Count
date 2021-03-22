@@ -7,9 +7,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,8 +18,8 @@ public class Node {
     DatagramSocket socket;
     Random random;
 
-    Receiver rec;
-    Leader leader;
+    Receiver recv;
+    Leader lead;
 
     public Node() {
         this.random = new Random();
@@ -32,7 +29,7 @@ public class Node {
             this.socket = new DatagramSocket(4445);
             socket.setSoTimeout(3000);
             if (!"gate".equals(hostname))
-                rec = new Receiver();
+                recv = new Receiver();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -64,15 +61,17 @@ public class Node {
                         System.out.printf("**** r%s_REC=%s\n", ip, msg);
                 }
             } catch (SocketTimeoutException e) {
-                int sleep = Math.abs(random.nextInt(1000));
-                System.out.printf("**** r%s_Timeout **** sleep=%s\n", ip, sleep);
+                // sleep
                 try {
+                    int sleep = Math.abs(random.nextInt(1000));
+                    System.out.printf("**** r%s_Timeout **** sleep=%s\n", ip, sleep);
                     Thread.sleep(sleep);
                 } catch (InterruptedException interruptedException) {
                     interruptedException.printStackTrace();
                 }
-                System.out.printf("wake_up_leader=%s\n", ip);
-                leader = new Leader(); // change to leader
+
+                // change to leader
+                lead = new Leader();
             } catch (IOException e) {
                 e.printStackTrace();
             }
