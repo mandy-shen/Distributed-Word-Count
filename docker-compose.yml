@@ -3,9 +3,6 @@ version: "3"
 networks:
   backend:
 
-volumes:
-  tmp:
-
 services:
   gate:
     hostname: gate
@@ -27,5 +24,25 @@ services:
       - "18081:8080"
     networks:
       - backend
-    volumes:
-      - tmp:/volume
+  app2:
+    hostname: app2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - app1
+    ports:
+      - "18082:8080"
+    networks:
+      - backend
+  app3:
+    hostname: app3
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - app1
+    ports:
+      - "18083:8080"
+    networks:
+      - backend

@@ -13,9 +13,11 @@ import java.util.TimerTask;
 
 public class Node {
 
-    public String hostname;
-    public String ip;
+    public static String leader = "gate";
+    String hostname;
+    String ip;
     DatagramSocket heartbeat;
+    DatagramSocket chgleader;
     Random random;
 
     Receiver recv;
@@ -26,69 +28,72 @@ public class Node {
         try {
             this.hostname = InetAddress.getLocalHost().getHostName();
             this.ip = InetAddress.getLocalHost().getHostAddress();
-            this.heartbeat = new DatagramSocket(4445);
-            heartbeat.setSoTimeout(600);
+            heartbeat = new DatagramSocket(4445);
+            chgleader = new DatagramSocket(2000);
 
-            if (!"gate".equals(hostname))
-                recv = new Receiver();
+            init();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    class Receiver extends Thread {
-        int acceptN;
-        int acceptV;
-        Timer timer;
+    public void init() {
+        recv = new Receiver();
+    }
+
+    class Receiver {
 
         public Receiver() {
-            initTimer();
-            this.start();
-        }
-
-        @Override
-        public void run() {
             accept();
-        }
-
-        private void initTimer() {
-            this.timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    waitTobeLeader();
-                }
-            }, 200); // every 0.2s broadcast heartbeat
         }
 
         private void accept() {
             try {
                 System.out.printf("%s=rec\n", hostname);
-                byte[] rec = new byte[8];
-                DatagramPacket recPkt = new DatagramPacket(rec, rec.length);
+                if (!"gate".equals(hostname))
+                    heartbeat.setSoTimeout(1000);
 
+                byte[] rec = new byte[16];
+                DatagramPacket recPkt = new DatagramPacket(rec, rec.length);
                 while (true) {
                     heartbeat.receive(recPkt);
                     String msg = new String(recPkt.getData(), 0, recPkt.getLength());
                     System.out.printf("**** r%s_REC=%s\n", hostname, msg);
 
-                    if (msg.startsWith("lv-")) {
-                        // reset timer
-                        timer.cancel();
-                        initTimer();
-                        if (lead != null)
-                            lead.timer.cancel();
+                    if (msg.contains(":")) {
+                        String[] arg = msg.split(":");
+                        if (arg[0].equals(leader)) {
+                            leader = arg[1];
+                            broadcast(chgleader,"ok", 2000);
+                        } else {
+                            broadcast(chgleader,"xx", 2000);
+                        }
                     }
                 }
             } catch (SocketTimeoutException e) {
+                waitTobeLeader();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
         private void waitTobeLeader() {
-            // change to leader
-            lead = new Leader();
+            try {
+                System.out.printf("%s=candidate\n", hostname);
+                broadcast(heartbeat,leader + ":" + hostname, 4445);
+
+                byte[] rec = new byte[8];
+                DatagramPacket recPkt = new DatagramPacket(rec, rec.length);
+                chgleader.setSoTimeout(1000);
+                chgleader.receive(recPkt);
+                String msg = new String(recPkt.getData(), 0, recPkt.getLength());
+                if ("ok".equals(msg))
+                    lead = new Leader();
+                else
+                    accept();
+            } catch (Exception e) {
+                accept();
+            }
         }
     }
 
@@ -96,35 +101,34 @@ public class Node {
         public Timer timer;
 
         public Leader() {
-            System.out.printf("%s=candidate\n", hostname);
             initTimer();
         }
 
         private void initTimer() {
             this.timer = new Timer();
-            RestTemplate restTemplate = new RestTemplate();
+            System.out.printf("%s=leader\n", hostname);
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    restTemplate.getForObject("http://gate:8080/param?hostname=" + hostname, String.class);
-                    System.out.printf("%s=leader\n", hostname);
-                    broadcast("lv-"+hostname);
+                    broadcast(heartbeat, "lv-"+hostname, 4445);
                 }
-            }, Math.abs(random.nextInt(200)), 100); // every 0.1s broadcast heartbeat
+            }, 0, 100); // every 0.1s broadcast heartbeat
         }
 
     }
 
-    private void broadcast(String msg) {
+    private void broadcast(DatagramSocket socket, String msg, int port) {
         try {
-            heartbeat.setBroadcast(true);
+            //System.out.printf("%s=start_broadcast\n", hostname);
+            socket.setBroadcast(true);
 
+            //System.out.printf("%s=start_broadcast_setting\n", hostname);
             byte[] buffer = msg.getBytes();
             InetAddress addr = InetAddress.getByName("255.255.255.255");
 
             //System.out.println("sent="+msg);
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, addr, 4445);
-            heartbeat.send(packet);
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, addr, port);
+            socket.send(packet);
         } catch (IOException e) {
             e.printStackTrace();
         }
