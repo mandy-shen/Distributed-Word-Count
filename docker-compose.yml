@@ -1,35 +1,31 @@
 version: "3"
 
 networks:
-  test:
+  backend:
 
 volumes:
   tmp:
 
 services:
-  app1:
-    container_name: app1
+  gate:
     environment:
-      - id=1
+      - id=0
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+  app1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - gate
     ports:
       - "18081:8080"
     networks:
-      - test
-    volumes:
-      - tmp:/volume
-  app2:
-    container_name: app2
-    environment:
-      - id=2
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "18082:8080"
-    networks:
-      - test
+      - backend
     volumes:
       - tmp:/volume

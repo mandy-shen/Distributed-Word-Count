@@ -15,49 +15,36 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value="/countwords")
+@RequestMapping
 public class WordCountController {
 
     @Value("${volume.path}")
     public String volpath;
 
-    //@GetMapping(value="/gate")
-    public String gate(@RequestParam String file) {
+    public String ip;
 
+    @GetMapping(value="/gate")
+    public String gate(@RequestParam String file) {
+        // URL: http://localhost:8080/gate?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
         String list = "Word(s) Found Most: \nWord(s) Found Least: ";
 
-        try {
-            Path leaderpath = Paths.get(volpath + "/leader");
-            int id = Integer.valueOf(Files.readAllLines(leaderpath).get(0));
-            System.out.printf("gate_leader=%s\n", id);
-
-            RestTemplate restTemplate = new RestTemplate();
-            switch (id) {
-                case 1:
-                    list = restTemplate.getForObject("http://localhost:18081/countwords?file="+file, String.class);
-                    break;
-                case 2:
-                    list = restTemplate.getForObject("http://localhost:18082/countwords?file="+file, String.class);
-                    break;
-                case 3:
-                    list = restTemplate.getForObject("http://localhost:18083/countwords?file="+file, String.class);
-                    break;
-                default:
-                    list = getFrequencyResult(file);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        RestTemplate restTemplate = new RestTemplate();
+        list = restTemplate.getForObject("http://" + ip + ":8080/countwords?file=" + file, String.class);
 
         return list;
     }
 
-    @GetMapping
+    @GetMapping(value="chgleader")
+    public void chgleader(@RequestParam String ip) {
+        this.ip = ip;
+    }
+
+    @GetMapping(value="/countwords")
     public String countwords(@RequestParam String file) {
         // URL: http://localhost:18080/countwords?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
-        // System.out.printf("file=%S\n", file);
+        // System.out.printf("file=%s\n", file);
         // String file = "https://www.gutenberg.org/cache/epub/19033/pg19033.txt";
-        file = Paths.get("./pg19033.txt").toUri().toString();
+        file = Paths.get(volpath + "/pg19033.txt").toUri().toString();
         return getFrequencyResult(file);
     }
 

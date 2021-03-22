@@ -1,7 +1,6 @@
 package com.mandy.wordcount;
 
-import node.LeaderNode;
-import node.RecNode;
+import node.Node;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -23,22 +22,22 @@ public class WordcountApplication {
     public static void run() {
         try {
             // create volume path
-            Path dirPath = Paths.get("./volume");
+            Path dirPath = Paths.get("/volume");
             if (!Files.exists(dirPath))
                 Files.createDirectories(dirPath);
 
             // log id
-            int id = 1;
-            Path idpath = Paths.get(dirPath + "/id");
-            if (Files.exists(idpath))
-                id = Integer.valueOf(Files.readAllLines(idpath).get(0)) + 1;
-            Files.write(idpath, String.valueOf(id).getBytes()); // overwrite file
+            String id = System.getenv("id");
+            System.out.println("id_test=" + id);
 
             // for test socket
-            if (id == 1)
-                new LeaderNode(dirPath, id);
-            else
-                new RecNode(dirPath, id);
+            if ("0".equals(id)) {
+                InetAddress localhost = InetAddress.getLocalHost();
+                String ip = String.format("%s", localhost.getHostAddress());
+                Files.write(Paths.get(dirPath + "/gate"), ip.getBytes());
+            } else {
+                new Node(dirPath);
+            }
 
             // log hosts
             InetAddress localhost = InetAddress.getLocalHost();
