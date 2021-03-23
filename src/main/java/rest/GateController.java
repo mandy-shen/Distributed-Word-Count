@@ -21,13 +21,17 @@ public class GateController {
 
     @GetMapping(value="/gate")
     public String gate(@RequestParam String file) {
-        // URL: http://localhost/gate?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
+        // URL: http://localhost:8080/gate?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
         String list = "";
-
-        System.out.println("Node.leader="+Node.leader);
         RestTemplate restTemplate = new RestTemplate();
-        list = restTemplate.getForObject("http://" + Node.leader + ":8080/count?file=" + file, String.class);
 
+        try {
+            System.out.println("Node.leader="+Node.leader);
+            list = restTemplate.getForObject("http://" + Node.leader + ":8080/count?file=" + file, String.class);
+        } catch (Exception e) {
+            Node.leader = "gate";
+            list = restTemplate.getForObject("http://gate:8080/count?file=" + file, String.class);
+        }
         return list;
     }
 

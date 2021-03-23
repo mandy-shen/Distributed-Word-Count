@@ -19,7 +19,7 @@ public class WordCountController {
         // URL: http://localhost:8080/count?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
         // System.out.printf("file=%s\n", file);
         // String file = "https://www.gutenberg.org/cache/epub/19033/pg19033.txt";
-        file = Paths.get("/project/pg19033.txt").toUri().toString();
+        // file = Paths.get("/project/pg19033.txt").toUri().toString();
         return getFrequencyResult(file);
     }
 
@@ -57,7 +57,7 @@ public class WordCountController {
                 .collect(Collectors.joining(", "));
          */
 
-        return "Word(s) Found Most: " + mostWords + "\nWord(s) Found Least: " + leastWords;
+        return "Word(s) Found Most: " + mostWords + "\nWord(s) Found Least: " + leastWords + "\n";
     }
 
     private Map<String, Integer> getWordMap(String path) {
