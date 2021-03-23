@@ -53,15 +53,18 @@ public class Node {
                 while (true) {
                     heartbeat.receive(recPkt);
                     String msg = new String(recPkt.getData(), 0, recPkt.getLength());
-                    System.out.printf("**** r_%s_REC=%s\n", hostname, msg);
+                    // System.out.printf("**** r_%s_REC=%s\n", hostname, msg);
 
-                    if (msg.contains(":")) {
-                        String[] arg = msg.split(":");
-                        if (arg[0].equals(leader)) {
-                            leader = arg[1];
-                            broadcast(chgleader,"ok-"+hostname, 2000);
-                        } else {
-                            broadcast(chgleader,"xx", 2000);
+                    if (!"gate".equals(hostname)) {
+                        if (msg.startsWith("lv-"))
+                            leader = msg.split("-")[1];
+                    } else {
+                        if (msg.contains(":")) {
+                            String[] arg = msg.split(":");
+                            if (arg[0].equals(leader)) {
+                                leader = arg[1];
+                                broadcast(chgleader, leader, 2000);
+                            }
                         }
                     }
                 }
@@ -82,8 +85,8 @@ public class Node {
                 chgleader.setSoTimeout(1000);
                 chgleader.receive(recPkt);
                 String msg = new String(recPkt.getData(), 0, recPkt.getLength());
-                System.out.printf("**** c_%s_candidate=%s\n", hostname, msg);
-                if ("ok-gate".equals(msg))
+                // System.out.printf("**** c_%s_candidate=%s\n", hostname, msg);
+                if (msg.equals(hostname))
                     lead = new Leader();
                 else
                     accept();
