@@ -30,8 +30,6 @@ public class Node {
             this.ip = InetAddress.getLocalHost().getHostAddress();
             heartbeat = new DatagramSocket(4445);
             chgleader = new DatagramSocket(2000);
-
-            init();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,15 +37,12 @@ public class Node {
 
     public void init() {
         recv = new Receiver();
+        recv.accept();
     }
 
     class Receiver {
 
-        public Receiver() {
-            accept();
-        }
-
-        private void accept() {
+        public void accept() {
             try {
                 System.out.printf("%s=rec\n", hostname);
                 if (!"gate".equals(hostname))
@@ -71,13 +66,13 @@ public class Node {
                     }
                 }
             } catch (SocketTimeoutException e) {
-                waitTobeLeader();
+                candidate();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        private void waitTobeLeader() {
+        private void candidate() {
             try {
                 System.out.printf("%s=candidate\n", hostname);
                 broadcast(heartbeat,leader + ":" + hostname, 4445);
