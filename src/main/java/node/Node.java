@@ -12,6 +12,8 @@ import java.util.TimerTask;
 public class Node {
 
     public static String leader = "gate";
+    public static Integer term = 0;
+
     String hostname;
     String ip;
     DatagramSocket heartbeat;
@@ -51,18 +53,19 @@ public class Node {
                 while (true) {
                     heartbeat.receive(recPkt);
                     String msg = new String(recPkt.getData(), 0, recPkt.getLength());
-                    // System.out.printf("**** r_%s_REC=%s\n", hostname, msg);
+                    System.out.printf("**** r_%s_REC=%s\n", hostname, msg);
 
-                    if (!"gate".equals(hostname)) {
-                        if (msg.startsWith("lv-"))
-                            leader = msg.split("-")[1];
-                    } else {
-                        if (msg.contains(":")) {
-                            String[] arg = msg.split(":");
-                            if (arg[0].equals(leader)) {
-                                leader = arg[1];
-                                broadcast(chgleader, leader, 2000);
-                            }
+                    if (msg.startsWith("v-")) {
+                        String[] arg = msg.split("-");
+                        leader = arg[1];
+                        term = Integer.parseInt(arg[2]);
+                    } else if (msg.startsWith("-")) {
+                        String[] arg = msg.split("-");
+                        int nextTerm = Integer.parseInt(arg[2]);
+                        if (term < nextTerm) {
+                            leader = arg[1];
+                            term = nextTerm;
+                            broadcast(chgleader, leader, 2000);
                         }
                     }
                 }
@@ -74,20 +77,23 @@ public class Node {
         }
 
         private void candidate() {
+            int cnt = 0;
             try {
                 System.out.printf("%s=candidate\n", hostname);
-                broadcast(heartbeat,leader + ":" + hostname, 4445);
+                broadcast(heartbeat,"-" + leader + "-" + (term+1), 4445);
 
                 byte[] rec = new byte[8];
                 DatagramPacket recPkt = new DatagramPacket(rec, rec.length);
                 chgleader.setSoTimeout(1000);
-                chgleader.receive(recPkt);
-                String msg = new String(recPkt.getData(), 0, recPkt.getLength());
-                // System.out.printf("**** c_%s_candidate=%s\n", hostname, msg);
-                if (msg.equals(hostname))
-                    lead = new Leader();
-                else
-                    accept();
+
+                while(cnt<2) {
+                    chgleader.receive(recPkt);
+                    String msg = new String(recPkt.getData(), 0, recPkt.getLength());
+                    System.out.printf("**** c_%s_candidate=%s\n", hostname, msg);
+                    if (msg.equals(hostname))
+                        cnt++;
+                }
+                lead = new Leader();
             } catch (Exception e) {
                 accept();
             }
@@ -107,7 +113,7 @@ public class Node {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    broadcast(heartbeat, "lv-"+hostname, 4445);
+                    broadcast(heartbeat, "v-"+hostname+"-"+term, 4445);
                 }
             }, 0, 100); // every 0.1s broadcast heartbeat
         }
