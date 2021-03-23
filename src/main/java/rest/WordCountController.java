@@ -61,7 +61,7 @@ public class WordCountController {
                 .collect(Collectors.joining(", "));
          */
 
-        return "Word(s) Found Most: " + mostWords + "\nWord(s) Found Least: " + leastWords + "\n";
+        return "Word(s) Found Most: " + mostWords + "<br>\nWord(s) Found Least: " + leastWords + "\n";
     }
 
     private Map<String, Integer> getWordMap(String path) {
