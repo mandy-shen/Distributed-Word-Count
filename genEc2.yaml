@@ -17,7 +17,7 @@ Mappings:
     us-east-2:
       HVM64: ami-027cab9a7bf0155df
 Resources:
-  EC2Instance:
+  WebServerInstance:
     Type: AWS::EC2::Instance
     Properties:
       ImageId:
@@ -27,11 +27,21 @@ Resources:
           - HVM64
       InstanceType: t2.micro
       SecurityGroups:
-        - Ref: EC2SecurityGroup
+        - Ref: WebServerSecurityGroup
       KeyName:
         Ref: KeyName
-      Policies:
-        - AmazonS3FullAccess
+      RolePolicies:
+        Type: AWS::IAM::Policy
+        DependsOn:
+          - WebServerInstance
+        Properties:
+          PolicyName: SFTPGatewayInstancePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:*'
+                Resource: '*'
       UserData:
         Fn::Base64:
           !Sub |
@@ -42,7 +52,7 @@ Resources:
             cd ~
             unzip -d . /tmp/wordcount.zip
             cd ./wordcount
-  EC2SecurityGroup:
+  WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable ports
@@ -67,8 +77,8 @@ Outputs:
         - ''
         - - http://
           - Fn::GetAtt:
-              - EC2Instance
+              - WebServerInstance
               - PublicDnsName
   PublicIP:
     Description: Public IP address
-    Value: !GetAtt [ EC2Instance, PublicIp ]
+    Value: !GetAtt [ WebServerInstance, PublicIp ]
