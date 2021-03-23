@@ -11,9 +11,9 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping
 public class GateController {
 
-    @GetMapping(value="/gate")
+    @GetMapping(value="/app")
     public String gate(@RequestParam String file) {
-        // URL: http://localhost:8080/gate?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
+        // URL: http://localhost:8080/app?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
         String list = "";
         RestTemplate restTemplate = new RestTemplate();
 
