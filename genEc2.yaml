@@ -1,0 +1,74 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ''
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: Can contain only ASCII characters.
+Mappings:
+  AWSRegionArch2AMI:
+    us-west-1:
+      HVM64: ami-088c153f74339f34c
+    us-west-2:
+      HVM64: ami-01fee56b22f308154
+    us-east-1:
+      HVM64: ami-032930428bf1abbff
+    us-east-2:
+      HVM64: ami-027cab9a7bf0155df
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId:
+        Fn::FindInMap:
+          - AWSRegionArch2AMI
+          - Ref: AWS::Region
+          - HVM64
+      InstanceType: t2.micro
+      SecurityGroups:
+        - Ref: EC2SecurityGroup
+      KeyName:
+        Ref: KeyName
+      Policies:
+        - AmazonS3FullAccess
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -ex
+            yum update -y
+            pwd >> init.txt
+            aws s3 cp s3://ec2-bucket-p/wordcount.zip /tmp
+            cd ~
+            unzip -d . /tmp/wordcount.zip
+            cd ./wordcount
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable ports
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '8080'
+          ToPort: '8080'
+          CidrIp: 0.0.0.0/0
+Outputs:
+  WebsiteURL:
+    Description: URL
+    Value:
+      Fn::Join:
+        - ''
+        - - http://
+          - Fn::GetAtt:
+              - EC2Instance
+              - PublicDnsName
+  PublicIP:
+    Description: Public IP address
+    Value: !GetAtt [ EC2Instance, PublicIp ]
