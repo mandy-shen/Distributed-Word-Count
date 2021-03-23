@@ -9,6 +9,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on:
+      - app1
+      - app2
+      - app3
     ports:
       - "8080:8080"
     networks:
@@ -18,10 +22,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      - gate
-    ports:
-      - "18081:8080"
     networks:
       - backend
   app2:
@@ -29,10 +29,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      - app1
-    ports:
-      - "18082:8080"
     networks:
       - backend
   app3:
@@ -40,9 +36,5 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      - app1
-    ports:
-      - "18083:8080"
     networks:
       - backend

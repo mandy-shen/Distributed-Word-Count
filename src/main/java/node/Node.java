@@ -44,7 +44,7 @@ public class Node {
 
         public void accept() {
             try {
-                System.out.printf("%s=rec\n", hostname);
+                System.out.printf("%s=recv\n", hostname);
                 if (!"gate".equals(hostname))
                     heartbeat.setSoTimeout(1000);
 
@@ -53,15 +53,15 @@ public class Node {
                 while (true) {
                     heartbeat.receive(recPkt);
                     String msg = new String(recPkt.getData(), 0, recPkt.getLength());
-                    System.out.printf("**** r_%s_REC=%s\n", hostname, msg);
+                    //System.out.printf("**** r_%s_REC=%s\n", hostname, msg);
 
-                    if (msg.startsWith("v-")) {
+                    if (msg.startsWith("lv-")) {
                         String[] arg = msg.split("-");
                         leader = arg[1];
                         term = Integer.parseInt(arg[2]);
-                    } else if (msg.startsWith("-")) {
-                        String[] arg = msg.split("-");
-                        int nextTerm = Integer.parseInt(arg[2]);
+                    } else if (msg.contains(":")) {
+                        String[] arg = msg.split(":");
+                        int nextTerm = Integer.parseInt(arg[0]);
                         if (term < nextTerm) {
                             leader = arg[1];
                             term = nextTerm;
@@ -80,7 +80,7 @@ public class Node {
             int cnt = 0;
             try {
                 System.out.printf("%s=candidate\n", hostname);
-                broadcast(heartbeat,"-" + leader + "-" + (term+1), 4445);
+                broadcast(heartbeat, (term+1)+":"+hostname, 4445);
 
                 byte[] rec = new byte[8];
                 DatagramPacket recPkt = new DatagramPacket(rec, rec.length);
@@ -89,11 +89,12 @@ public class Node {
                 while(cnt<2) {
                     chgleader.receive(recPkt);
                     String msg = new String(recPkt.getData(), 0, recPkt.getLength());
-                    System.out.printf("**** c_%s_candidate=%s\n", hostname, msg);
+                    //System.out.printf("**** c_%s_candidate=%s\n", hostname, msg);
                     if (msg.equals(hostname))
                         cnt++;
                 }
                 lead = new Leader();
+                term++;
             } catch (Exception e) {
                 accept();
             }
@@ -113,7 +114,7 @@ public class Node {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    broadcast(heartbeat, "v-"+hostname+"-"+term, 4445);
+                    broadcast(heartbeat, "lv-"+hostname+"-"+term, 4445);
                 }
             }, 0, 100); // every 0.1s broadcast heartbeat
         }
