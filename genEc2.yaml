@@ -36,7 +36,7 @@ Resources:
           usermod -a -G docker ec2-user
           curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
           chmod +x /usr/local/bin/docker-compose
-          aws s3 cp s3://ec2-bucket-p/wordcount.zip /tmp
+          aws s3 cp s3://west-bucket-csye6225/wordcount.zip /tmp
           unzip -d . /tmp/wordcount.zip
           cd ./wordcount
           docker-compose up -d
@@ -91,9 +91,7 @@ Outputs:
       Fn::Join:
         - ''
         - - http://
-          - Fn::GetAtt:
-              - PublicDnsName
-              - "/app?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt"
+          - PublicDnsName
   PublicIP:
     Description: Public IP address
     Value: !GetAtt [ WebServerInstance, PublicIp ]
