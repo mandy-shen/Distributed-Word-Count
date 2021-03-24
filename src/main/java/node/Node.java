@@ -1,5 +1,6 @@
 package node;
 
+import rpc.Client;
 import rpc.Server;
 
 import java.io.IOException;
@@ -13,7 +14,8 @@ public class Node {
 
     public static String leader = "gate";
     public static Integer term = 0;
-    public static Set<String> validNodes = new HashSet<>();
+    public static HashSet<String> validNodes = new HashSet<>();
+    public static List<String> Nodes = new ArrayList<>();
 
     public String hostname;
     String ip;
@@ -38,8 +40,8 @@ public class Node {
     }
 
     public void init() {
-        validNodes.add(hostname);
-        broadcast(heartbeat, "r-"+hostname, 4445);
+        if (!"gate".equals(hostname))
+            validNodes.add(hostname);
 
         // chunk mission
         server = new Server(hostname);
@@ -64,13 +66,10 @@ public class Node {
                     heartbeat.receive(recPkt);
                     String msg = new String(recPkt.getData(), 0, recPkt.getLength());
                     //System.out.printf("**** r_%s_REC=%s\n", hostname, msg);
-
                     if (msg.startsWith("lv-")) {
                         String[] arg = msg.split("-");
                         leader = arg[1];
                         term = Integer.parseInt(arg[2]);
-                    } else if (msg.startsWith("r-")) {
-                        validNodes.add(msg.split("-")[1]);
                     } else if (msg.contains(":")) {
                         String[] arg = msg.split(":");
                         int nextTerm = Integer.parseInt(arg[0]);
@@ -79,12 +78,13 @@ public class Node {
                                 validNodes.remove(leader);
                             leader = arg[1];
                             term = nextTerm;
-                            broadcast(chgleader, leader, 2000);
+                            broadcast(chgleader, leader+"-"+hostname, 2000);
                         }
                     }
                 }
             } catch (SocketTimeoutException e) {
                 // timeout: change to candidate
+                validNodes.remove(leader);
                 candidate();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -95,21 +95,23 @@ public class Node {
             int cnt = 0;
             try {
                 System.out.printf("%s=candidate\n", hostname);
+                broadcast(heartbeat, (term+1)+":"+hostname, 4445);
 
-                if (validNodes.size()>1) {
-                    broadcast(heartbeat, (term+1)+":"+hostname, 4445);
-                    byte[] rec = new byte[8];
-                    DatagramPacket recPkt = new DatagramPacket(rec, rec.length);
-                    chgleader.setSoTimeout(1000);
+                byte[] rec = new byte[16];
+                DatagramPacket recPkt = new DatagramPacket(rec, rec.length);
+                chgleader.setSoTimeout(1000);
 
-                    while(cnt<2) {
-                        chgleader.receive(recPkt);
-                        String msg = new String(recPkt.getData(), 0, recPkt.getLength());
-                        //System.out.printf("**** c_%s_candidate=%s\n", hostname, msg);
-                        if (msg.equals(hostname))
-                            cnt++;
+                while(cnt<2) {
+                    chgleader.receive(recPkt);
+                    String msg = new String(recPkt.getData(), 0, recPkt.getLength());
+                    //System.out.printf("**** c_%s_candidate=%s\n", hostname, msg);
+                    if (msg.startsWith(hostname)) {
+                        String node = msg.split("-")[1];
+                        System.out.println(node + " voted.for " + hostname);
+                        cnt++;
                     }
                 }
+
                 leader = hostname;
                 lead = new Leader();
                 term++;
@@ -133,8 +135,13 @@ public class Node {
                 @Override
                 public void run() {
                     broadcast(heartbeat, "lv-"+hostname+"-"+term, 4445);
+                    validNodes.add(hostname);
+                    for (String host: Nodes) {
+                        if (new Client().alive(host))
+                            validNodes.add(host);
+                    }
                 }
-            }, 0, 100); // every 0.1s broadcast heartbeat
+            }, 0, 200); // every 0.2s broadcast heartbeat
         }
 
     }

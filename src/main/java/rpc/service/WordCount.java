@@ -14,5 +14,9 @@ public interface WordCount {
 
     @WebMethod
     String output(String server, String path);
+
+    @WebMethod
+    Boolean alive(String server);
+
 }
 

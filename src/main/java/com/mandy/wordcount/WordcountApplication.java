@@ -14,6 +14,9 @@ public class WordcountApplication {
 
     public static void run() {
         Node node = new Node();
+        Node.Nodes.add("app1");
+        Node.Nodes.add("app2");
+        Node.Nodes.add("app3");
         node.init();
     }
 

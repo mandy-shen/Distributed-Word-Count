@@ -35,7 +35,6 @@ public class WordCountImpl implements WordCount {
     public String output(String leader, String path) {
         StringBuilder sb = new StringBuilder("Client connected to cluster.<br>");
 
-
         Set<String> nodes = Node.validNodes;
         String hosts = nodes.stream().collect(Collectors.joining(","));
         sb.append("Cluster servers: Server (").append(hosts).append(")");
@@ -44,7 +43,7 @@ public class WordCountImpl implements WordCount {
         sb.append("<br><br>").append("Leader elected: Server "+leader).append("<br>");
 
         // live nodes number
-        int num = nodes.size();
+        int num = (nodes.size()==0)? 1:nodes.size();
         byte[] src = readBytes(path);
         int len = src.length;
 
@@ -93,6 +92,11 @@ public class WordCountImpl implements WordCount {
 
 
         return sb.toString();
+    }
+
+    @Override
+    public Boolean alive(String server) {
+        return true;
     }
 
     private byte[] readBytes(String path) {
