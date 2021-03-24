@@ -7,7 +7,7 @@ services:
   gate:
     hostname: gate
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     depends_on:
       - app1
@@ -20,21 +20,21 @@ services:
   app1:
     hostname: app1
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     networks:
       - backend
   app2:
     hostname: app2
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     networks:
       - backend
   app3:
     hostname: app3
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     networks:
       - backend
