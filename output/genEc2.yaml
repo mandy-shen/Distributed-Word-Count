@@ -91,7 +91,10 @@ Outputs:
       Fn::Join:
         - ''
         - - http://
-          - PublicDnsName
+          - Fn::GetAtt:
+              - WebServerInstance
+              - PublicDnsName
+          - /app?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt
   PublicIP:
     Description: Public IP address
     Value: !GetAtt [ WebServerInstance, PublicIp ]
