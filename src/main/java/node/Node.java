@@ -1,23 +1,25 @@
 package node;
 
+import rpc.Server;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public class Node {
 
     public static String leader = "gate";
     public static Integer term = 0;
+    public static Set<String> validNodes = new HashSet<>();
 
-    String hostname;
+    public String hostname;
     String ip;
     DatagramSocket heartbeat;
     DatagramSocket chgleader;
+    Server server;
     Random random;
 
     Receiver recv;
@@ -36,6 +38,14 @@ public class Node {
     }
 
     public void init() {
+        validNodes.add(hostname);
+        broadcast(heartbeat, "r-"+hostname, 4445);
+
+        // chunk mission
+        server = new Server(hostname);
+        server.start();
+
+        // every node starts from Follower
         recv = new Receiver();
         recv.accept();
     }
@@ -59,10 +69,14 @@ public class Node {
                         String[] arg = msg.split("-");
                         leader = arg[1];
                         term = Integer.parseInt(arg[2]);
+                    } else if (msg.startsWith("r-")) {
+                        validNodes.add(msg.split("-")[1]);
                     } else if (msg.contains(":")) {
                         String[] arg = msg.split(":");
                         int nextTerm = Integer.parseInt(arg[0]);
                         if (term < nextTerm) {
+                            if (!hostname.equals(leader))
+                                validNodes.remove(leader);
                             leader = arg[1];
                             term = nextTerm;
                             broadcast(chgleader, leader, 2000);
@@ -70,6 +84,7 @@ public class Node {
                     }
                 }
             } catch (SocketTimeoutException e) {
+                // timeout: change to candidate
                 candidate();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -80,19 +95,22 @@ public class Node {
             int cnt = 0;
             try {
                 System.out.printf("%s=candidate\n", hostname);
-                broadcast(heartbeat, (term+1)+":"+hostname, 4445);
 
-                byte[] rec = new byte[8];
-                DatagramPacket recPkt = new DatagramPacket(rec, rec.length);
-                chgleader.setSoTimeout(1000);
+                if (validNodes.size()>1) {
+                    broadcast(heartbeat, (term+1)+":"+hostname, 4445);
+                    byte[] rec = new byte[8];
+                    DatagramPacket recPkt = new DatagramPacket(rec, rec.length);
+                    chgleader.setSoTimeout(1000);
 
-                while(cnt<2) {
-                    chgleader.receive(recPkt);
-                    String msg = new String(recPkt.getData(), 0, recPkt.getLength());
-                    //System.out.printf("**** c_%s_candidate=%s\n", hostname, msg);
-                    if (msg.equals(hostname))
-                        cnt++;
+                    while(cnt<2) {
+                        chgleader.receive(recPkt);
+                        String msg = new String(recPkt.getData(), 0, recPkt.getLength());
+                        //System.out.printf("**** c_%s_candidate=%s\n", hostname, msg);
+                        if (msg.equals(hostname))
+                            cnt++;
+                    }
                 }
+                leader = hostname;
                 lead = new Leader();
                 term++;
             } catch (Exception e) {
