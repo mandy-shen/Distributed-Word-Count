@@ -1,5 +1,4 @@
 FROM openjdk:8
-
 MAINTAINER mandy
 
 RUN apt-get update && apt-get install -y maven
