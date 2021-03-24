@@ -8,18 +8,13 @@ Parameters:
     ConstraintDescription: Can contain only ASCII characters.
 Mappings:
   AWSRegionArch2AMI:
-    us-west-1:
-      HVM64: ami-088c153f74339f34c
     us-west-2:
-      HVM64: ami-01fee56b22f308154
-    us-east-1:
-      HVM64: ami-032930428bf1abbff
-    us-east-2:
-      HVM64: ami-027cab9a7bf0155df
+      HVM64: ami-05b622b5fa0269787
 Resources:
   WebServerInstance:
     Type: AWS::EC2::Instance
     Properties:
+      IamInstanceProfile: !Ref RootInstanceProfile
       ImageId:
         Fn::FindInMap:
           - AWSRegionArch2AMI
@@ -30,28 +25,52 @@ Resources:
         - Ref: WebServerSecurityGroup
       KeyName:
         Ref: KeyName
-      RolePolicies:
-        Type: AWS::IAM::Policy
-        DependsOn:
-          - WebServerInstance
-        Properties:
-          PolicyName: SFTPGatewayInstancePolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: 's3:*'
-                Resource: '*'
       UserData:
         Fn::Base64:
           !Sub |
-            #!/bin/bash -ex
-            yum update -y
-            pwd >> init.txt
-            aws s3 cp s3://ec2-bucket-p/wordcount.zip /tmp
-            cd ~
-            unzip -d . /tmp/wordcount.zip
-            cd ./wordcount
+          #!/bin/bash -ex
+          whoami >> /tmp/whoami.txt
+          yum update -y
+          amazon-linux-extras install docker
+          service docker start
+          usermod -a -G docker ec2-user
+          curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+          aws s3 cp s3://ec2-bucket-p/wordcount.zip /tmp
+          unzip -d . /tmp/wordcount.zip
+          cd ./wordcount
+          docker-compose up -d
+  RootInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref S3WritableRole
+  S3WritableRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+  RolePolicies:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - WebServerInstance
+    Properties:
+      PolicyName: EC2toS3Policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: 's3:*'
+            Resource: '*'
+      Roles:
+        - !Ref S3WritableRole
   WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -65,10 +84,6 @@ Resources:
           FromPort: '22'
           ToPort: '22'
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: '8080'
-          ToPort: '8080'
-          CidrIp: 0.0.0.0/0
 Outputs:
   WebsiteURL:
     Description: URL
@@ -77,8 +92,8 @@ Outputs:
         - ''
         - - http://
           - Fn::GetAtt:
-              - WebServerInstance
               - PublicDnsName
+              - "/app?file=https://www.gutenberg.org/cache/epub/19033/pg19033.txt"
   PublicIP:
     Description: Public IP address
     Value: !GetAtt [ WebServerInstance, PublicIp ]
