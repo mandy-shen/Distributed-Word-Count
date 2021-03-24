@@ -7,34 +7,34 @@ services:
   gate:
     hostname: gate
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     depends_on:
       - app1
       - app2
       - app3
     ports:
-      - "8080:8080"
+      - "80:8080"
     networks:
       - backend
   app1:
     hostname: app1
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     networks:
       - backend
   app2:
     hostname: app2
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     networks:
       - backend
   app3:
     hostname: app3
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     networks:
       - backend
