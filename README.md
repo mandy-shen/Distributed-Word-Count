@@ -37,4 +37,4 @@ mapreduce a text file to count each word, listing top3.  leader election(Raft).
    the formula is = http://{yourDomain}/app?file={TextFileUrl}
 2. wait for the page refresh, or refresh by hands, to show the output in the page.
 3. see Screen Shot 2021-03-24 at 14.32.25.PNG
-   ps. Since using tomcat, it would be wait for a long time to launch all apps, it would also be failure in the beginning.
+* ps. Since using tomcat, it would be wait for a long time to launch all apps, it would also be failure in the beginning.
