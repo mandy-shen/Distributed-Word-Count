@@ -1,2 +1,2 @@
 # wordcount
-mapreduce a text file to count each word, listing top3.  leader election. 
+mapreduce a text file to count each word, listing top3.  leader election(Raft). 
