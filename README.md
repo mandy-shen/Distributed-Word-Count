@@ -1,6 +1,9 @@
 # wordcount
 mapreduce a text file to count each word, listing top3.  leader election(Raft). 
 
+## tool
+Java, SpringBoot, Maven, Docker, Docker-Compose, CloudFormation
+
 ## required
 * browser (eg. Chrome, firefox, Safari)
 * AWS account
