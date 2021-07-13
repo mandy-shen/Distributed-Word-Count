@@ -1,5 +1,6 @@
 # Wordcount
-mapreduce a text file to count each word, listing top3.  leader election(Raft). 
+* Mapreduce a text file to count each word, listing top3.
+* Implement leader election.
 
 ## tool
 Java, SpringBoot, Maven, Docker, Docker-Compose, AWS(EC2, CloudFormation), Bash
