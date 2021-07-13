@@ -1,6 +1,6 @@
 # Wordcount
-* Mapreduce a text file to count each word, listing top3.
-* Implement leader election.
+* Mapreduce a text file to count each word, listing top3 and implement a manual leader election.
+* Leverage UDP and broadcast to achieve election, RPC to mapreduce the jobs.
 
 ## tool
 Java, SpringBoot, Maven, Docker, Docker-Compose, AWS(EC2, CloudFormation), Bash
