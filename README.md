@@ -1,11 +1,11 @@
-# wordcount
+# Wordcount
 mapreduce a text file to count each word, listing top3.  leader election(Raft). 
 
 ## tool
-Java, SpringBoot, Maven, Docker, Docker-Compose, CloudFormation
+Java, SpringBoot, Maven, Docker, Docker-Compose, AWS(EC2, CloudFormation), Bash
 
 ## required
-* browser (eg. Chrome, firefox, Safari)
+* Browser (eg. Chrome, Firefox, Safari)
 * AWS account
 * genEc2.yaml
 * Key : Name of an existing EC2 KeyPair to enable SSH access to the instance
